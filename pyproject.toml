@@ -1,0 +1,23 @@
+[project]
+name = "vision-caption"
+version = "0.1.0"
+description = "Inference-first image captioning with SigLIP + Phi-3 + LoRA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "torch>=2.2.0",
+  "transformers>=4.40.0,<5",
+  "peft>=0.10.0",
+  "gradio>=4.0.0",
+  "pillow>=10.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
