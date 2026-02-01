@@ -36,12 +36,23 @@ This is a compact VLM that's easy to reason about, extend, and demo.
 
 ## Quick Start
 
+**Local:**
 ```bash
 pip install -e .
 python app.py
 ```
 
-Gradio opens a local page (usually `http://127.0.0.1:7860`) where you can upload an image.
+Gradio opens at `http://127.0.0.1:7860`.
+
+**Google Colab:**
+```python
+!git clone https://github.com/asynced24/vision-caption.git
+%cd vision-caption
+!pip install -e .
+!python colab_app.py
+```
+
+Opens a public Gradio link you can share.
 
 ---
 
@@ -80,4 +91,4 @@ notebooks/demo.ipynb
 - Inference-first — no training loop included
 - LoRA adapters load from `ModelConfig.lora_adapter_path` if provided
 - First run downloads ~8GB of model weights from Hugging Face
-- Runs best on GPU; CPU needs 16GB+ RAM
+- **Colab recommended** — Phi-3 + SigLIP needs ~10GB RAM; free T4 runtime handles it easily
