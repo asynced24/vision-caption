@@ -50,6 +50,28 @@ Gradio opens at `http://127.0.0.1:7860`.
 
 Train the projector on COCO Captions (full dataset: 118k images):
 
+### Local (GPU recommended)
+
+1. Download COCO train2017 + annotations locally, or use KaggleHub (optional)
+2. Train with your local paths
+
+**Option A — Local files (recommended):**
+```bash
+python local_run.py train --images-dir "C:\datasets\coco\train2017" --annotations-file "C:\datasets\coco\annotations\captions_train2017.json" --epochs 2 --batch-size 8
+```
+
+**Option B — KaggleHub (optional):**
+```python
+# pip install kagglehub
+import kagglehub
+
+# Download latest version
+path = kagglehub.dataset_download("awsaf49/coco-2017-dataset")
+print("Path to dataset files:", path)
+```
+
+KaggleHub is optional. If you've already downloaded COCO locally, you don't need it.
+
 ### Option 1: Kaggle Notebooks (Recommended - higher free quota)
 
 1. Go to https://www.kaggle.com/ and create free account
