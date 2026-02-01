@@ -27,7 +27,9 @@ from tqdm import tqdm
 
 from vision_caption import ModelConfig
 from vision_caption.data import COCOCaptionDataset
-from vision_caption.models import LanguageDecoder, Projector, VisionEncoder
+from vision_caption.models.language_decoder import LanguageDecoder
+from vision_caption.models.projector import Projector
+from vision_caption.models.vision_encoder import VisionEncoder
 
 
 def train_projector(
