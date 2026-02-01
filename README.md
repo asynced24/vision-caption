@@ -25,12 +25,12 @@ Caption
 ```
 
 Built for clarity:
-- Frozen pretrained encoder + decoder ; no training loop in this repo
-- LoRA adapters on the language model for efficient fine-tuning
-- MLP bridges vision features into the decoder's embedding space
-- Single `generate()` method makes the inference path obvious
+- Frozen pretrained encoder + decoder
+- Trainable MLP projector maps vision to language space
+- LoRA-ready for efficient language model fine-tuning
+- Clean training + inference separation
 
-This is a compact VLM that's easy to reason about, extend, and demo.
+This is a complete VLM pipeline that's easy to reason about, train, and demo.
 
 ---
 
@@ -56,12 +56,39 @@ Opens a public Gradio link you can share.
 
 ---
 
+## Training
+
+Train the projector on COCO Captions (full dataset: 118k images):
+
+```python
+# In Google Colab (recommended)
+# Open notebooks/train_colab.ipynb and run all cells
+```
+
+**What gets trained:** Only the MLP projector (~10M params)  
+**What stays frozen:** Vision encoder + language decoder  
+**Dataset:** COCO train2017 (download handled automatically)  
+**Time:** ~2-3 hours on free T4 GPU  
+
+After training, download `projector_final.pt` and set:
+```python
+config = ModelConfig()
+config.projector_path = "checkpoints/projector_final.pt"
+model = load_model(config)
+```
+
+---
+
 ## Minimal API
 
 ```python
-from vision_caption import load_model
+from vision_caption import ModelConfig, load_model
 
-model = load_model()
+# With trained projector
+config = ModelConfig()
+config.projector_path = "checkpoints/projector_final.pt"
+model = load_model(config)
+
 caption = model.generate("path/to/image.jpg")
 print(caption)
 ```
@@ -77,18 +104,23 @@ src/vision_caption/
     projector.py
     language_decoder.py
     vlm.py
+  data.py
   inference.py
   config.py
 
+train.py
 app.py
-notebooks/demo.ipynb
+colab_app.py
+notebooks/
+  train_colab.ipynb
+  demo.ipynb
 ```
 
 ---
 
 ## Notes
 
-- Inference-first — no training loop included
+- **Projector must be trained** — run `notebooks/train_colab.ipynb` to train on COCO
 - LoRA adapters load from `ModelConfig.lora_adapter_path` if provided
-- First run downloads ~4GB of model weights from Hugging Face
-- **Colab recommended** — Qwen2-1.5B + SigLIP needs ~6GB RAM; free T4 runtime handles it easily
+- First run downloads ~4GB of pretrained weights from Hugging Face
+- **Training:** Full COCO train2017 (~118k images) takes ~2-3 hours on Colab T4

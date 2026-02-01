@@ -11,6 +11,7 @@ class ModelConfig:
     lora_dropout: float = 0.05
     lora_target_modules: Sequence[str] = ("q_proj", "k_proj", "v_proj", "o_proj")
     lora_adapter_path: Optional[str] = None
+    projector_path: Optional[str] = None  # Path to trained projector weights
 
     prompt: str = "Describe the image."
     max_new_tokens: int = 64

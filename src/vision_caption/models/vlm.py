@@ -34,6 +34,11 @@ class VisionCaptioner(nn.Module):
             text_dim=self.decoder.hidden_size,
         )
 
+        # Load trained projector weights if provided
+        if config.projector_path:
+            self.projector.load_state_dict(torch.load(config.projector_path, map_location="cpu"))
+            print(f"Loaded projector weights from {config.projector_path}")
+
         self.to(device)
         self.eval()
 
