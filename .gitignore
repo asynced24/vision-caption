@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 venv/
 .env
+local_paths.json
 .DS_Store
 *.ipynb_checkpoints
 *.egg-info/

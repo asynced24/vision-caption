@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import json
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -13,9 +15,36 @@ def _ensure_path_exists(path: Path, label: str) -> None:
         raise SystemExit(f"{label} not found: {path}")
 
 
+def _load_local_paths() -> tuple[Optional[str], Optional[str]]:
+    base_dir = Path(__file__).resolve().parent
+    config_path = base_dir / "local_paths.json"
+    images_dir = os.environ.get("COCO_IMAGES_DIR")
+    annotations_file = os.environ.get("COCO_ANNOTATIONS_FILE")
+
+    if config_path.is_file():
+        try:
+            data = json.loads(config_path.read_text())
+            images_dir = images_dir or data.get("images_dir")
+            annotations_file = annotations_file or data.get("annotations_file")
+        except json.JSONDecodeError as exc:
+            raise SystemExit(f"Invalid JSON in {config_path}: {exc}") from exc
+
+    return images_dir, annotations_file
+
+
 def _run_train(args: argparse.Namespace) -> None:
-    images_dir = Path(args.images_dir)
-    annotations_file = Path(args.annotations_file)
+    images_dir = args.images_dir
+    annotations_file = args.annotations_file
+    if not images_dir or not annotations_file:
+        images_dir, annotations_file = _load_local_paths()
+
+    if not images_dir or not annotations_file:
+        raise SystemExit(
+            "Missing COCO paths. Pass --images-dir/--annotations-file or create local_paths.json."
+        )
+
+    images_dir = Path(images_dir)
+    annotations_file = Path(annotations_file)
 
     _ensure_path_exists(images_dir, "Images directory")
     _ensure_path_exists(annotations_file, "Annotations file")
@@ -64,10 +93,10 @@ def _build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     train_parser = subparsers.add_parser("train", help="Train the projector locally.")
-    train_parser.add_argument("--images-dir", required=True, help="Path to COCO train2017 images.")
+    train_parser.add_argument("--images-dir", default=None, help="Path to COCO train2017 images.")
     train_parser.add_argument(
         "--annotations-file",
-        required=True,
+        default=None,
         help="Path to captions_train2017.json.",
     )
     train_parser.add_argument("--output-dir", default="checkpoints", help="Where to save weights.")

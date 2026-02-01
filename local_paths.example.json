@@ -1,0 +1,4 @@
+{
+  "images_dir": "C:/datasets/coco/train2017",
+  "annotations_file": "C:/datasets/coco/annotations/captions_train2017.json"
+}
