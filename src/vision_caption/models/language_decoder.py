@@ -24,6 +24,18 @@ def _ensure_dynamic_cache_compat() -> None:
         if not hasattr(DynamicCache, name):
             setattr(DynamicCache, name, value)
 
+    # Phi-3 calls DynamicCache.from_legacy_cache(None) when use_cache=True and no cache is passed.
+    # Provide a safe fallback that returns an empty cache.
+    if hasattr(DynamicCache, "from_legacy_cache"):
+        original_from_legacy_cache = DynamicCache.from_legacy_cache
+
+        def _from_legacy_cache(cache):
+            if cache is None:
+                return DynamicCache()
+            return original_from_legacy_cache(cache)
+
+        DynamicCache.from_legacy_cache = staticmethod(_from_legacy_cache)
+
 
 class LanguageDecoder(nn.Module):
     def __init__(

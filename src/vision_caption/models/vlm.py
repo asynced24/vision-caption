@@ -95,17 +95,25 @@ class VisionCaptioner(nn.Module):
         max_tokens = max_new_tokens or self.config.max_new_tokens
         eos_id = self.decoder.tokenizer.eos_token_id
         generated_ids: list[int] = []
-        past_key_values = None
 
-        # Manual autoregressive loop with KV caching for speed
+        past_key_values = None
+        use_cache = True
+        try:
+            from transformers.cache_utils import DynamicCache
+
+            past_key_values = DynamicCache()
+        except Exception:
+            use_cache = False
+
+        # Manual autoregressive loop with KV caching for speed (falls back if cache unavailable).
         for _ in range(max_tokens):
             outputs = self.decoder.model(
                 inputs_embeds=inputs_embeds,
                 past_key_values=past_key_values,
-                use_cache=True,
+                use_cache=use_cache,
                 return_dict=True,
             )
-            past_key_values = outputs.past_key_values
+            past_key_values = outputs.past_key_values if use_cache else None
             next_logits = outputs.logits[:, -1, :]
             next_token = self._sample_next_token(next_logits, temperature, top_p, do_sample)
 
@@ -114,8 +122,13 @@ class VisionCaptioner(nn.Module):
                 break
             generated_ids.append(token_id)
 
-            # Only pass new token for next iteration (cache has the rest)
-            inputs_embeds = self.decoder.embed_text(next_token)
+            if use_cache:
+                # Only pass new token for next iteration (cache has the rest).
+                inputs_embeds = self.decoder.embed_text(next_token)
+            else:
+                # No cache available: keep the full sequence.
+                next_embed = self.decoder.embed_text(next_token)
+                inputs_embeds = torch.cat([inputs_embeds, next_embed], dim=1)
 
         text = self.decoder.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return text.strip()
