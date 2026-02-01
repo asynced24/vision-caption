@@ -48,6 +48,26 @@ class VisionCaptioner(nn.Module):
         bos_id = self.decoder.tokenizer.bos_token_id or self.decoder.tokenizer.eos_token_id
         return torch.tensor([[bos_id]], device=self.device)
 
+    def _sample_next_token(
+        self, logits: torch.Tensor, temperature: float, top_p: float, do_sample: bool
+    ) -> torch.Tensor:
+        if not do_sample:
+            return logits.argmax(dim=-1, keepdim=True)
+
+        logits = logits / max(temperature, 1e-5)
+        probs = torch.softmax(logits, dim=-1)
+
+        # Top-p (nucleus) sampling
+        sorted_probs, sorted_indices = torch.sort(probs, descending=True)
+        cumsum = torch.cumsum(sorted_probs, dim=-1)
+        mask = cumsum - sorted_probs > top_p
+        sorted_probs[mask] = 0.0
+        sorted_probs /= sorted_probs.sum(dim=-1, keepdim=True)
+
+        next_token_sorted = torch.multinomial(sorted_probs, num_samples=1)
+        next_token = sorted_indices.gather(-1, next_token_sorted)
+        return next_token
+
     @torch.inference_mode()
     def generate(
         self,
@@ -72,28 +92,28 @@ class VisionCaptioner(nn.Module):
         text_embeds = self.decoder.embed_text(input_ids)
         inputs_embeds = torch.cat([image_embeds, text_embeds], dim=1)
 
-        image_mask = torch.ones(
-            (inputs_embeds.size(0), image_embeds.size(1)), device=self.device, dtype=torch.long
-        )
-        text_mask = torch.ones(
-            (inputs_embeds.size(0), text_embeds.size(1)), device=self.device, dtype=torch.long
-        )
-        attention_mask = torch.cat([image_mask, text_mask], dim=1)
+        max_tokens = max_new_tokens or self.config.max_new_tokens
+        eos_id = self.decoder.tokenizer.eos_token_id
+        generated_ids: list[int] = []
 
-        output_ids = self.decoder.model.generate(
-            inputs_embeds=inputs_embeds,
-            attention_mask=attention_mask,
-            max_new_tokens=max_new_tokens or self.config.max_new_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            do_sample=do_sample,
-            use_cache=False,
-            pad_token_id=self.decoder.tokenizer.pad_token_id,
-            eos_token_id=self.decoder.tokenizer.eos_token_id,
-            **gen_kwargs,
-        )
+        # Manual autoregressive loop — bypasses generate() quirks with inputs_embeds
+        for _ in range(max_tokens):
+            outputs = self.decoder.model.base_model(
+                inputs_embeds=inputs_embeds,
+                use_cache=False,
+                return_dict=True,
+            )
+            next_logits = outputs.logits[:, -1, :]
+            next_token = self._sample_next_token(next_logits, temperature, top_p, do_sample)
 
-        text = self.decoder.tokenizer.decode(output_ids[0], skip_special_tokens=True)
-        if prompt_text and text.startswith(prompt_text):
-            text = text[len(prompt_text) :].lstrip(" :\n")
+            token_id = next_token.item()
+            if token_id == eos_id:
+                break
+            generated_ids.append(token_id)
+
+            # Append new token embedding for next iteration
+            next_embed = self.decoder.embed_text(next_token)
+            inputs_embeds = torch.cat([inputs_embeds, next_embed], dim=1)
+
+        text = self.decoder.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return text.strip()

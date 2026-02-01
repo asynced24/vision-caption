@@ -6,6 +6,25 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
+def _ensure_dynamic_cache_compat() -> None:
+    try:
+        from transformers.cache_utils import DynamicCache
+    except Exception:
+        return
+
+    if not hasattr(DynamicCache, "get_seq_length"):
+        DynamicCache.get_seq_length = lambda self: 0
+
+    patches = {
+        "seen_tokens": property(lambda self: self.get_seq_length()),
+        "get_max_length": lambda self, *args, **kwargs: None,
+        "get_usable_length": lambda self, *args, **kwargs: self.get_seq_length(),
+    }
+    for name, value in patches.items():
+        if not hasattr(DynamicCache, name):
+            setattr(DynamicCache, name, value)
+
+
 class LanguageDecoder(nn.Module):
     def __init__(
         self,
@@ -18,6 +37,8 @@ class LanguageDecoder(nn.Module):
         lora_adapter_path: str | None = None,
     ) -> None:
         super().__init__()
+
+        _ensure_dynamic_cache_compat()
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name, use_fast=True, trust_remote_code=True
@@ -48,6 +69,11 @@ class LanguageDecoder(nn.Module):
         if lora_adapter_path:
             self.model.load_adapter(lora_adapter_path, adapter_name="default")
             self.model.set_adapter("default")
+
+        # Avoid DynamicCache path differences for Phi-3 on newer Transformers.
+        self.model.config.use_cache = False
+        if hasattr(self.model, "generation_config"):
+            self.model.generation_config.use_cache = False
 
         self.hidden_size = base_model.config.hidden_size
 
