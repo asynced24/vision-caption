@@ -98,7 +98,7 @@ class VisionCaptioner(nn.Module):
 
         # Manual autoregressive loop — bypasses generate() quirks with inputs_embeds
         for _ in range(max_tokens):
-            outputs = self.decoder.model.base_model(
+            outputs = self.decoder.model(
                 inputs_embeds=inputs_embeds,
                 use_cache=False,
                 return_dict=True,
