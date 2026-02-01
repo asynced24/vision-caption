@@ -44,15 +44,15 @@ python app.py
 
 Gradio opens at `http://127.0.0.1:7860`.
 
-**Google Colab:**
+**Google Colab (demo only):**
 ```python
 !git clone https://github.com/asynced24/vision-caption.git
 %cd vision-caption
-!pip install -e .
+%pip install -e .
 !python colab_app.py
 ```
 
-Opens a public Gradio link you can share.
+Opens a public Gradio link. **Note:** Requires a trained projector (see Training section).
 
 ---
 
@@ -60,17 +60,20 @@ Opens a public Gradio link you can share.
 
 Train the projector on COCO Captions (full dataset: 118k images):
 
-```python
-# In Google Colab (recommended)
-# Open notebooks/train_colab.ipynb and run all cells
-```
+**In Google Colab:**
 
-**What gets trained:** Only the MLP projector (~10M params)  
-**What stays frozen:** Vision encoder + language decoder  
-**Dataset:** COCO train2017 (download handled automatically)  
-**Time:** ~2-3 hours on free T4 GPU  
+1. Go to https://colab.research.google.com/
+2. File → Open notebook → GitHub → `asynced24/vision-caption` → `notebooks/train_colab.ipynb`
+3. Runtime → Change runtime type → **T4 GPU**
+4. Run all cells (Ctrl+F9)
 
-After training, download `projector_final.pt` and set:
+**What happens:**
+- Downloads COCO train2017 (~19GB images + annotations)
+- Trains projector for ~2-3 hours
+- Saves `checkpoints/projector_final.pt`
+- Downloads trained weights to your machine
+
+**After training:**
 ```python
 config = ModelConfig()
 config.projector_path = "checkpoints/projector_final.pt"
