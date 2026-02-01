@@ -6,37 +6,6 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-def _ensure_dynamic_cache_compat() -> None:
-    try:
-        from transformers.cache_utils import DynamicCache
-    except Exception:
-        return
-
-    if not hasattr(DynamicCache, "get_seq_length"):
-        DynamicCache.get_seq_length = lambda self: 0
-
-    patches = {
-        "seen_tokens": property(lambda self: self.get_seq_length()),
-        "get_max_length": lambda self, *args, **kwargs: None,
-        "get_usable_length": lambda self, *args, **kwargs: self.get_seq_length(),
-    }
-    for name, value in patches.items():
-        if not hasattr(DynamicCache, name):
-            setattr(DynamicCache, name, value)
-
-    # Phi-3 calls DynamicCache.from_legacy_cache(None) when use_cache=True and no cache is passed.
-    # Provide a safe fallback that returns an empty cache.
-    if hasattr(DynamicCache, "from_legacy_cache"):
-        original_from_legacy_cache = DynamicCache.from_legacy_cache
-
-        def _from_legacy_cache(cache):
-            if cache is None:
-                return DynamicCache()
-            return original_from_legacy_cache(cache)
-
-        DynamicCache.from_legacy_cache = staticmethod(_from_legacy_cache)
-
-
 class LanguageDecoder(nn.Module):
     def __init__(
         self,
@@ -50,19 +19,13 @@ class LanguageDecoder(nn.Module):
     ) -> None:
         super().__init__()
 
-        _ensure_dynamic_cache_compat()
-
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_name, use_fast=True, trust_remote_code=True
-        )
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
         base_model = AutoModelForCausalLM.from_pretrained(
             model_name,
             torch_dtype=dtype,
-            trust_remote_code=True,
-            attn_implementation="eager",
             low_cpu_mem_usage=True,
         )
         base_model.config.pad_token_id = self.tokenizer.pad_token_id

@@ -2,7 +2,7 @@
 
 Inference-first image captioning with a clean, readable architecture.
 
-**Stack:** SigLIP vision encoder → MLP projector → Phi-3 decoder + LoRA
+**Stack:** SigLIP vision encoder → MLP projector → Qwen2-1.5B decoder + LoRA
 
 ---
 
@@ -18,7 +18,7 @@ SigLIP Vision Encoder
 MLP Projector (vision → text space)
   │
   ▼
-Phi-3 Decoder + LoRA
+Qwen2-1.5B Decoder + LoRA
   │
   ▼
 Caption
@@ -90,5 +90,5 @@ notebooks/demo.ipynb
 
 - Inference-first — no training loop included
 - LoRA adapters load from `ModelConfig.lora_adapter_path` if provided
-- First run downloads ~8GB of model weights from Hugging Face
-- **Colab recommended** — Phi-3 + SigLIP needs ~10GB RAM; free T4 runtime handles it easily
+- First run downloads ~4GB of model weights from Hugging Face
+- **Colab recommended** — Qwen2-1.5B + SigLIP needs ~6GB RAM; free T4 runtime handles it easily
