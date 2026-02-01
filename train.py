@@ -94,7 +94,7 @@ def train_projector(
         vision_dim=encoder.hidden_size,
         text_dim=decoder.hidden_size,
     )
-    projector.to(device)
+    projector.to(device=device, dtype=dtype)
     projector.train()
 
     # Load COCO dataset
