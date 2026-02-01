@@ -73,6 +73,11 @@ Then run:
 python local_run.py train --epochs 3 --batch-size 8
 ```
 
+**Option A.2 — Fast local sanity run:**
+```bash
+python local_run.py train --epochs 1 --batch-size 8 --max-samples 50000
+```
+
 **Option B — KaggleHub (optional):**
 ```python
 # pip install kagglehub
