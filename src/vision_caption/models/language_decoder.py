@@ -70,11 +70,6 @@ class LanguageDecoder(nn.Module):
             self.model.load_adapter(lora_adapter_path, adapter_name="default")
             self.model.set_adapter("default")
 
-        # Avoid DynamicCache path differences for Phi-3 on newer Transformers.
-        self.model.config.use_cache = False
-        if hasattr(self.model, "generation_config"):
-            self.model.generation_config.use_cache = False
-
         self.hidden_size = base_model.config.hidden_size
 
     def embed_text(self, input_ids: torch.Tensor) -> torch.Tensor:
