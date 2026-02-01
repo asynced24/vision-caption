@@ -53,11 +53,24 @@ Train the projector on COCO Captions (full dataset: 118k images):
 ### Local (GPU recommended)
 
 1. Download COCO train2017 + annotations locally, or use KaggleHub (optional)
-2. Train with your local paths
+2. Train with your local paths (or set `local_paths.json` once)
 
 **Option A — Local files (recommended):**
 ```bash
 python local_run.py train --images-dir "C:\datasets\coco\train2017" --annotations-file "C:\datasets\coco\annotations\captions_train2017.json" --epochs 3 --batch-size 8
+```
+
+**Option A.1 — Set once (no paths every run):**
+Create `local_paths.json`:
+```json
+{
+  "images_dir": "C:/datasets/coco/train2017",
+  "annotations_file": "C:/datasets/coco/annotations/captions_train2017.json"
+}
+```
+Then run:
+```bash
+python local_run.py train --epochs 3 --batch-size 8
 ```
 
 **Option B — KaggleHub (optional):**
@@ -121,6 +134,11 @@ model = load_model(config)
 
 caption = model.generate("path/to/image.jpg")
 print(caption)
+```
+
+**Local runner (after training):**
+```bash
+python local_run.py caption "path\to\image.jpg"
 ```
 
 ---
