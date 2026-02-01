@@ -98,22 +98,19 @@ class VisionCaptioner(nn.Module):
 
         past_key_values = None
         use_cache = True
-        try:
-            from transformers.cache_utils import DynamicCache
+        inputs_embeds_step = inputs_embeds
+        input_ids_step = None
 
-            past_key_values = DynamicCache()
-        except Exception:
-            use_cache = False
-
-        # Manual autoregressive loop with KV caching for speed (falls back if cache unavailable).
+        # Manual autoregressive loop with KV caching for speed.
         for _ in range(max_tokens):
             outputs = self.decoder.model(
-                inputs_embeds=inputs_embeds,
+                input_ids=input_ids_step,
+                inputs_embeds=inputs_embeds_step,
                 past_key_values=past_key_values,
                 use_cache=use_cache,
                 return_dict=True,
             )
-            past_key_values = outputs.past_key_values if use_cache else None
+            past_key_values = outputs.past_key_values
             next_logits = outputs.logits[:, -1, :]
             next_token = self._sample_next_token(next_logits, temperature, top_p, do_sample)
 
@@ -122,13 +119,9 @@ class VisionCaptioner(nn.Module):
                 break
             generated_ids.append(token_id)
 
-            if use_cache:
-                # Only pass new token for next iteration (cache has the rest).
-                inputs_embeds = self.decoder.embed_text(next_token)
-            else:
-                # No cache available: keep the full sequence.
-                next_embed = self.decoder.embed_text(next_token)
-                inputs_embeds = torch.cat([inputs_embeds, next_embed], dim=1)
+            # After the first step, feed tokens by id and rely on the cache.
+            input_ids_step = next_token
+            inputs_embeds_step = None
 
         text = self.decoder.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return text.strip()
