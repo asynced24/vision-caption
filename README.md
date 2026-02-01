@@ -69,7 +69,7 @@ Train the projector on COCO Captions (full dataset: 118k images):
 
 **What happens:**
 - Downloads COCO train2017 (~19GB images + annotations)
-- Trains projector for ~2-3 hours
+- Trains projector 
 - Saves `checkpoints/projector_final.pt`
 - Downloads trained weights to your machine
 
@@ -126,4 +126,3 @@ notebooks/
 - **Projector must be trained** — run `notebooks/train_colab.ipynb` to train on COCO
 - LoRA adapters load from `ModelConfig.lora_adapter_path` if provided
 - First run downloads ~4GB of pretrained weights from Hugging Face
-- **Training:** Full COCO train2017 (~118k images) takes ~2-3 hours on Colab T4
