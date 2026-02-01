@@ -94,7 +94,8 @@ def train_projector(
         vision_dim=encoder.hidden_size,
         text_dim=decoder.hidden_size,
     )
-    projector.to(device=device, dtype=dtype)
+    # Keep projector in fp32 for stable training; encoder/decoder stay in fp16 on GPU.
+    projector.to(device=device, dtype=torch.float32)
     projector.train()
 
     # Load COCO dataset
@@ -149,12 +150,12 @@ def train_projector(
                 text_embeds = decoder.embed_text(input_ids)
 
             # Project vision features to text space (this is what we're training)
-            projected_embeds = projector(vision_features).to(dtype=dtype)
+            projected_embeds = projector(vision_features.float())
 
             # Compute alignment loss
             # We use mean pooling to get fixed-size representations
             projected_mean = projected_embeds.mean(dim=1)  # [batch, hidden_dim]
-            text_mean = text_embeds.mean(dim=1)  # [batch, hidden_dim]
+            text_mean = text_embeds.float().mean(dim=1)  # [batch, hidden_dim]
 
             # MSE loss encourages projected features to match text embeddings
             loss = F.mse_loss(projected_mean, text_mean)
