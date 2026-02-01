@@ -44,16 +44,6 @@ python app.py
 
 Gradio opens at `http://127.0.0.1:7860`.
 
-**Google Colab (demo only):**
-```python
-!git clone https://github.com/asynced24/vision-caption.git
-%cd vision-caption
-%pip install -e .
-!python colab_app.py
-```
-
-Opens a public Gradio link. **Note:** Requires a trained projector (see Training section).
-
 ---
 
 ## Training
@@ -128,7 +118,6 @@ src/vision_caption/
 
 train.py
 app.py
-colab_app.py
 notebooks/
   train_colab.ipynb
   demo.ipynb
