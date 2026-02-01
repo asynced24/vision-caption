@@ -100,7 +100,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Path to captions_train2017.json.",
     )
     train_parser.add_argument("--output-dir", default="checkpoints", help="Where to save weights.")
-    train_parser.add_argument("--epochs", type=int, default=2, help="Number of epochs.")
+    train_parser.add_argument("--epochs", type=int, default=3, help="Number of epochs.")
     train_parser.add_argument("--batch-size", type=int, default=8, help="Batch size.")
     train_parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate.")
     train_parser.add_argument(
