@@ -60,7 +60,7 @@ Opens a public Gradio link. **Note:** Requires a trained projector (see Training
 
 Train the projector on COCO Captions (full dataset: 118k images):
 
-### Option 1: Kaggle Notebooks (Recommended - 30hrs/week GPU)
+### Option 1: Kaggle Notebooks (Recommended - higher free quota)
 
 1. Go to https://www.kaggle.com/ and create free account
 2. Code → New Notebook → Import notebook → Upload `notebooks/train_colab.ipynb`
@@ -69,22 +69,22 @@ Train the projector on COCO Captions (full dataset: 118k images):
 5. Run all cells
 
 **Why Kaggle:**
-- 30 hours/week GPU quota (vs Colab's ~2 hours)
-- 12-hour continuous sessions
+- Higher weekly GPU quota than Colab free tier
+- Longer continuous sessions
 - No random disconnects
 
-### Option 2: Google Colab (Free tier has 1-2 hour limit)
+### Option 2: Google Colab (Free tier has shorter limits)
 
 1. Go to https://colab.research.google.com/
 2. File → Open notebook → GitHub → `asynced24/vision-caption` → `notebooks/train_colab.ipynb`
 3. Runtime → Change runtime type → **T4 GPU**
 4. Run all cells (Ctrl+F9)
 
-**Note:** Free tier may disconnect after ~1-2 hours. Training saves checkpoints every epoch, so you can resume if needed.
+**Note:** Free tier may disconnect. Training saves checkpoints every epoch, so you can resume if needed.
 
 **What happens:**
 - Downloads COCO train2017 (~19GB images + annotations)
-- Trains projector (full dataset: ~2-3 hours on T4)
+- Trains projector on full COCO train2017
 - Saves `checkpoints/projector_final.pt`
 - Downloads trained weights to your machine
 
