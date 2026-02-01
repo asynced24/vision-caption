@@ -25,7 +25,7 @@ Caption
 ```
 
 Built for clarity:
-- Frozen pretrained encoder + decoder — no training loop in this repo
+- Frozen pretrained encoder + decoder ; no training loop in this repo
 - LoRA adapters on the language model for efficient fine-tuning
 - MLP bridges vision features into the decoder's embedding space
 - Single `generate()` method makes the inference path obvious
