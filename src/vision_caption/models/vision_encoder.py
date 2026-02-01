@@ -6,7 +6,9 @@ from transformers import SiglipImageProcessor, SiglipVisionModel
 class VisionEncoder(nn.Module):
     def __init__(self, model_name: str, dtype: torch.dtype) -> None:
         super().__init__()
-        self.model = SiglipVisionModel.from_pretrained(model_name, torch_dtype=dtype)
+        self.model = SiglipVisionModel.from_pretrained(
+            model_name, torch_dtype=dtype, low_cpu_mem_usage=True
+        )
         self.processor = SiglipImageProcessor.from_pretrained(model_name)
         self.hidden_size = self.model.config.hidden_size
 

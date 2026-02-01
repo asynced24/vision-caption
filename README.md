@@ -1,8 +1,8 @@
-# Vision Caption (2026)
+# Vision Caption
 
 Inference-first image captioning with a clean, readable architecture.
 
-**Stack:** SigLIP vision encoder + MLP projector + Phi-3 language decoder (LoRA only).
+**Stack:** SigLIP vision encoder → MLP projector → Phi-3 decoder + LoRA
 
 ---
 
@@ -24,11 +24,13 @@ Phi-3 Decoder + LoRA
 Caption
 ```
 
-The captioner is intentionally simple:
-- Pretrained vision encoder + language decoder, no training loop.
-- Optional LoRA adapters on the language model.
-- A small MLP maps vision features into the decoder’s embedding space.
-- Generation happens in one `generate()` method for clarity.
+Built for clarity:
+- Frozen pretrained encoder + decoder — no training loop in this repo
+- LoRA adapters on the language model for efficient fine-tuning
+- MLP bridges vision features into the decoder's embedding space
+- Single `generate()` method makes the inference path obvious
+
+This is a compact VLM that's easy to reason about, extend, and demo.
 
 ---
 
@@ -75,8 +77,7 @@ notebooks/demo.ipynb
 
 ## Notes
 
-- This repo is intentionally inference-first. No training loop is included.
-- If you have LoRA adapter weights, set `ModelConfig.lora_adapter_path`.
-- First run will download model weights from Hugging Face.
-- Sample images live in `sample_images/`.
-- `transformers` is pinned to `<5` for Phi-3 compatibility.
+- Inference-first — no training loop included
+- LoRA adapters load from `ModelConfig.lora_adapter_path` if provided
+- First run downloads ~8GB of model weights from Hugging Face
+- Runs best on GPU; CPU needs 16GB+ RAM

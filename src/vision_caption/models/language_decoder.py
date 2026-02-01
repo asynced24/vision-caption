@@ -26,10 +26,15 @@ class LanguageDecoder(nn.Module):
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
         base_model = AutoModelForCausalLM.from_pretrained(
-            model_name, torch_dtype=dtype, trust_remote_code=True
+            model_name,
+            torch_dtype=dtype,
+            trust_remote_code=True,
+            attn_implementation="eager",
+            low_cpu_mem_usage=True,
         )
         base_model.config.pad_token_id = self.tokenizer.pad_token_id
 
+        # LoRA for parameter-efficient fine-tuning
         lora_config = LoraConfig(
             r=lora_r,
             lora_alpha=lora_alpha,

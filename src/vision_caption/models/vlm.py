@@ -18,6 +18,8 @@ class VisionCaptioner(nn.Module):
         self.device = device
         self.dtype = dtype
 
+        # Load smaller vision encoder first to reduce memory fragmentation
+        self.encoder = VisionEncoder(config.vision_model, dtype=dtype)
         self.decoder = LanguageDecoder(
             model_name=config.language_model,
             dtype=dtype,
@@ -27,7 +29,6 @@ class VisionCaptioner(nn.Module):
             lora_target_modules=config.lora_target_modules,
             lora_adapter_path=config.lora_adapter_path,
         )
-        self.encoder = VisionEncoder(config.vision_model, dtype=dtype)
         self.projector = Projector(
             vision_dim=self.encoder.hidden_size,
             text_dim=self.decoder.hidden_size,
@@ -86,6 +87,7 @@ class VisionCaptioner(nn.Module):
             temperature=temperature,
             top_p=top_p,
             do_sample=do_sample,
+            use_cache=False,
             pad_token_id=self.decoder.tokenizer.pad_token_id,
             eos_token_id=self.decoder.tokenizer.eos_token_id,
             **gen_kwargs,
