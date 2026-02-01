@@ -95,27 +95,25 @@ class VisionCaptioner(nn.Module):
         max_tokens = max_new_tokens or self.config.max_new_tokens
         eos_id = self.decoder.tokenizer.eos_token_id
         generated_ids: list[int] = []
-        past_key_values = None
 
-        # Manual autoregressive loop with KV caching for speed
-        for i in range(max_tokens):
-            outputs = self.decoder.model(
+        # Manual autoregressive loop — bypasses generate() quirks with inputs_embeds
+        for _ in range(max_tokens):
+            outputs = self.decoder.model.base_model(
                 inputs_embeds=inputs_embeds,
-                past_key_values=past_key_values,
-                use_cache=True,
+                use_cache=False,
                 return_dict=True,
             )
-            past_key_values = outputs.past_key_values
             next_logits = outputs.logits[:, -1, :]
             next_token = self._sample_next_token(next_logits, temperature, top_p, do_sample)
 
-            token_id = next_token.squeeze().item()
+            token_id = next_token.item()
             if token_id == eos_id:
                 break
             generated_ids.append(token_id)
 
-            # Only pass new token for next iteration (cache has the rest)
-            inputs_embeds = self.decoder.embed_text(next_token)
+            # Append new token embedding for next iteration
+            next_embed = self.decoder.embed_text(next_token)
+            inputs_embeds = torch.cat([inputs_embeds, next_embed], dim=1)
 
         text = self.decoder.tokenizer.decode(generated_ids, skip_special_tokens=True)
         return text.strip()
