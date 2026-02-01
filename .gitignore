@@ -11,14 +11,5 @@ outputs/
 checkpoints/
 *.pt
 *.safetensors
-__pycache__/
-*.pyc
-.venv/
-venv/
-.env
-.DS_Store
-*.ipynb_checkpoints
-outputs/
-checkpoints/
-*.pt
-*.safetensors
+archive (3)/
+coco_data/
